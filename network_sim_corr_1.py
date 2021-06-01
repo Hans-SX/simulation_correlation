@@ -5,47 +5,42 @@ Created on Fri May 28 15:28:27 2021
 @author: Hans
 """
 
-import numpy as np
-import glob
 import torch
-from torch.utils.data import Dataset, DataLoader
-from sim_corr_utils import generate_specific_rows
+from torch import nn
 
-"""
-Note:
-    __init__(): load data, first 10 thousands >> test set,
-        second 10 >> validation, rest >> train-set
+
+class Baseline_Sim_Corr(nn.Module):
+    def __init__(self, in_dim=8, out_dim=2):
+        super().__init__()
+        
+        self.model = self._build_model(in_dim, out_dim)
+
     
-    training phase: one epoch validate (performance on validation set)
-                    once to check overfitting.
-    Loss function: mean square difference?
-    performance: look for regression performance.
-
-"""
-
-class sim_corr_DS(Dataset):
-    def __init__(self, set_type='train'):
+    def _build_model(self, in_dim, out_dim):
+        model = torch.Sequntial(
+                nn.Linear(in_dim, 16),
+                torch.tanh(),
+                nn.Linear(16, 32),
+                torch.tanh(),
+                nn.Linear(32, 16),
+                torch.tanh(),
+                nn.Linear(16, 8),
+                torch.tanh(),
+                nn.Linear(8, 4),
+                torch.tanh(),
+                nn.Linear(4, out_dim),
+                torch.sigmoid())
+        return model
+        
+    def forward(self, x, y):
+        x = self.model(x)
+        y = self.model(y)
+        
+        out = torch.kron(x, y)
+        return out
+    
+    
+        
+#class FC2_Sim_Corr(nn.Module):
+#    def __init__(self, first_layer=4):
 #        super().__init__()
-        self.set = set_type
-        label_paths = glob.glob('./data/prob_dist*.txt')
-        input_paths = glob.glob('./data/unitary*.txt')
-        
-        if set_type == 'test':
-            userows = np.arange(0, 10**4)
-            self.U = generate_set_data(input_paths, userows)
-            self.P = generate_set_data(label_paths, userows)
-        elif set_type == 'validation':
-            userows = np.arange(10**4+1, 2*10**4)
-            self.U = generate_set_data(input_paths, userows)
-            self.P = generate_set_data(label_paths, userows)
-        else:
-            userows = np.arange(2*10**4 + 1, 10**5)
-            self.U = generate_set_data(input_paths, userows)
-            self.P = generate_set_data(label_paths, userows)
-        
-    def __len__(self):
-        return self.U.shape[0]
-    
-    def __getitem__(self, idx):
-        
-
