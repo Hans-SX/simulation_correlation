@@ -27,30 +27,38 @@ class sim_corr_DS(Dataset):
     def __init__(self, set_type='train'):
 #        super().__init__()
         self.set = set_type
-        label_paths = glob.glob('C:/Users/Ezio/Documents/SX/simulated correlations/data/prob_dist*.txt')
-        input_paths = glob.glob('C:/Users/Ezio/Documents/SX/simulated correlations/data/unitary*.txt')
+        # label_paths = glob.glob('C:/Users/Ezio/Documents/SX/simulated correlations/data/prob_dist*.txt')
+        # input_paths = glob.glob('C:/Users/Ezio/Documents/SX/simulated correlations/data/unitary*.txt')
+        label_paths = glob.glob('/home/sxyang/files/simulation_correlation/corr/prob_dist*.txt')
+        input_paths = glob.glob('/home/sxyang/files/simulation_correlation/corr/unitary*.txt')
+        # Pa_Pb_paths = glob.glob('/home/sxyang/files/simulation_correlation/corr/PA_PB*')
         
         if set_type == 'test':
-            userows = np.arange(0, 10**4)
-            self.U = generate_set_data(input_paths, userows)
-            self.P = generate_set_data(label_paths, userows)
-        elif set_type == 'validation':
-            userows = np.arange(10**4, 2*10**4)
-            self.U = generate_set_data(input_paths, userows)
-            self.P = generate_set_data(label_paths, userows)
-        elif set_type == 'go_through':
             userows = np.arange(0, 10**3)
             self.U = generate_set_data(input_paths, userows)
             self.P = generate_set_data(label_paths, userows)
-        else:
-            userows = np.arange(2*10**4, 10**5)
+            # self.Pa_Pb = generate_set_data(Pa_Pb_paths, userows)
+        elif set_type == 'validation':
+            userows = np.arange(10**3, 2*10**3)
             self.U = generate_set_data(input_paths, userows)
             self.P = generate_set_data(label_paths, userows)
+            # self.Pa_Pb = generate_set_data(Pa_Pb_paths, userows)
+        elif set_type == 'go_through':
+            userows = np.arange(0, 10**2)
+            self.U = generate_set_data(input_paths, userows)
+            self.P = generate_set_data(label_paths, userows)
+            # self.Pa_Pb = generate_set_data(Pa_Pb_paths, userows)
+        else:
+            userows = np.arange(2*10**3, 10**4)
+            self.U = generate_set_data(input_paths, userows)
+            self.P = generate_set_data(label_paths, userows)
+            # self.Pa_Pb = generate_set_data(Pa_Pb_paths, userows)
         
         # After 200 epochs loss stat in a range,
         # expect overfitting in a less data set
-        self.U = self.U[0:100]
-        self.P = self.P[0:100]
+        # self.U = self.U[0:100]
+        # self.P = self.P[0:100]
+        # self.Pa_Pb = self.Pa_Pb[0:100]
         
     def __len__(self):
         return self.U.shape[0]
@@ -59,7 +67,8 @@ class sim_corr_DS(Dataset):
         # U, P origin are numpy array float64
         in_data = torch.as_tensor(self.U[idx,:], dtype=torch.float32)
         label = torch.as_tensor(self.P[idx,:], dtype=torch.float32)
-        return in_data[0:8], in_data[8:16], label
+        # comparison_label = torch.as_tensor(self.Pa_Pb[idx,:], dtype=torch.float32)
+        return in_data[0:8], in_data[8:16], label # comparison_label
 
 
 if __name__ == '__main__':

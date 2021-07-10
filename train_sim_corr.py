@@ -19,14 +19,14 @@ writer = SummaryWriter()
 time_mark = time.strftime("%Y_%m_%d_%H_%M", time.localtime())
 # import matplotlib.pyplot as plt
 
-batch_size = 10
-num_epochs = 100 # 1000
+batch_size = 50  # 10
+num_epochs = 1000 # 1000
 save_epoch = 10  # 10
 init_lr = 1e-4   # 1e-4
 display_iter = 5
 # betas=(0.9, 0.999), eps=1e-08, weight_decay=0
 # print("Create dataset")
-train_set = sim_corr_DS(set_type='go_through')
+train_set = sim_corr_DS(set_type='train')
 train_loader = DataLoader(train_set, batch_size=batch_size,
                          shuffle=True, num_workers=0)
 valid_set = sim_corr_DS(set_type='validation')
@@ -34,9 +34,9 @@ valid_loader = DataLoader(valid_set, batch_size=batch_size,
                          shuffle=False, num_workers=0)
 
 # print("Build model")
-# model = Baseline_Sim_Corr()
+model = Baseline_Sim_Corr()
 # model = Baseline_Sim_Corr_v2(nodes=256)
-model = Baseline_Sim_relu(nodes=256)
+# model = Baseline_Sim_relu(nodes=256)
 
 # print("Create optimizer")
 optimizer = torch.optim.Adam(model.parameters(), lr=init_lr)
@@ -62,11 +62,12 @@ its = 0
 for epoch in range(num_epochs):
     model.train()
     tmp_loss = 0
+    # comp_label = Pa, Pb. But not necessary, all = 0.5, Max Ent partial trace = identity.
     for it, (x, y, target) in enumerate(train_loader):
         # print('data from train_loader')
         its += 1
         optimizer.zero_grad()
-        output = model(x, y)
+        output, train_Pa, Pb = model(x, y)
         # print('put data into model')
         # print(output.shape) # (10e4, 4) = kron((10e2, 4), (10e2, 4))
         # print("x shape:", x.shape) # (10e2, 8) >> after model (10e2,4)
@@ -86,15 +87,17 @@ for epoch in range(num_epochs):
             tmp_loss = 0
         # if loss.item() < b_loss:
         #     b_loss = loss
+    Loss, avgPa = test_func(model, valid_loader, criterion)
+    writer.add_scalar("valid loss", Loss, epoch+1)
+    writer.add_scalar("Pa0 behavior", avgPa, epoch+1)
+    print('Epoch: {} - Loss: {:.6F}'.format(epoch+1, loss.item()))
+    print('valid Loss: {:.6F}'.format(Loss))
     if (epoch+1) % save_epoch ==0:
         # lrs.append(optimizer.param_groups[0]["lr"])
         # scheduler.step()
-        # param_path = './state_dict/sim_corr_' + str(epoch+1) + '_.pt'
-        # torch.save(model.state_dict(), param_path)
-        Loss = test_func(model, valid_loader, criterion)
-        writer.add_scalar("valid loss", Loss, epoch+1)
-        print('Epoch: {} - Loss: {:.6F}'.format(epoch+1, loss.item()))
-        print('valid Loss: {:.6F}'.format(Loss))
+        param_path = '../state_dict/sim_corr_' + str(epoch+1) + '_.pt'
+        torch.save(model.state_dict(), param_path)
+
         # break
         
 writer.flush()

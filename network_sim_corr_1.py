@@ -18,15 +18,19 @@ class Baseline_Sim_Corr(nn.Module):
     
     def _build_model(self, in_dim, out_dim):
         model = nn.Sequential(
-                nn.Linear(in_dim, 64),
+                nn.Linear(in_dim, 32),
                 nn.Tanh(),
-                nn.Linear(64, 32),
+                nn.Linear(32, 128),
                 nn.Tanh(),
-                nn.Linear(32, 16),
+                nn.Linear(128, 100),
                 nn.Tanh(),
-                nn.Linear(16, 8),
+                nn.Linear(100, 60),
                 nn.Tanh(),
-                nn.Linear(8, 4),
+                nn.Linear(60, 30),
+                nn.Tanh(),
+                nn.Linear(30, 16),
+                nn.Tanh(),
+                nn.Linear(16, 4),
                 nn.Tanh(),
                 nn.Linear(4, out_dim),
                 nn.Sigmoid())
@@ -40,7 +44,7 @@ class Baseline_Sim_Corr(nn.Module):
         # out.shape (batch_size, out_dim, out_dim)
         out = out.reshape(x.shape[0], -1)
         # out.shape (batch_size, out_dim^2)
-        return out
+        return out, x, y
     
     
         
