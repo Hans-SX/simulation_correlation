@@ -67,6 +67,7 @@ class sim_corr_DS(Dataset):
         # U, P origin are numpy array float64
         in_data = torch.as_tensor(self.U[idx,:], dtype=torch.float32)
         label = torch.as_tensor(self.P[idx,:], dtype=torch.float32)
+        # label = torch.tensor([1,0,0,0])
         # comparison_label = torch.as_tensor(self.Pa_Pb[idx,:], dtype=torch.float32)
         return in_data[0:8], in_data[8:16], label # comparison_label
 
@@ -75,16 +76,23 @@ if __name__ == '__main__':
     from torch.utils.data import DataLoader
     # Problem arising from Spyder?  not solve the problem
     #    __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
-    batch_size = 1
+    batch_size = 50
     lr = 0.001     # betas=(0.9, 0.999), eps=1e-08, weight_decay=0
-    train_set = sim_corr_DS(set_type='go_through')
-    x1, x2, t = train_set.__getitem__(0)
-#    print(x1.shape)
-#    print(x2.shape)
-    print(t.shape)
+    train_set = sim_corr_DS(set_type='train')
+    for i in range(20):
+        x1, x2, t = train_set.__getitem__(i)
+    #    print(x1.shape)
+    #    print(x2.shape)
+        print(t)
+    exit()
     train_loader = DataLoader(train_set, batch_size=batch_size,
-                             shuffle=True, num_workers=1)
-    for (x, y, target) in train_loader:
-        print(x.dtype)
-#        print(x.shape)
-        break
+                             shuffle=True, num_workers=0)
+    test_set = sim_corr_DS(set_type='validation')
+    v1, v2, t2 = test_set.__getitem__(0)
+    test_loader = DataLoader(test_set, batch_size=batch_size,
+                             shuffle=True, num_workers=0)
+    
+#     for (x, y, target) in train_loader:
+#         print(x.dtype)
+# #        print(x.shape)
+#         break

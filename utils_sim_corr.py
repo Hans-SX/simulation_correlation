@@ -5,6 +5,7 @@ Created on Thu May 27 17:26:47 2021
 @author: Hans
 """
 import numpy as np
+import torch
 
 def generate_specific_rows(filePath, userows=[]):
     with open(filePath) as f:
@@ -19,3 +20,7 @@ def generate_set_data(paths, userows):
     array = array.reshape(-1, array.shape[2])
     
     return array
+
+def softXEnt(output, target):
+    logprobs = torch.nn.functional.log_softmax(output, dim = 1)
+    return  -(target * logprobs).sum() / output.shape[0]

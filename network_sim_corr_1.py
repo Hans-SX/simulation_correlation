@@ -7,6 +7,7 @@ Created on Fri May 28 15:28:27 2021
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 
 class Baseline_Sim_Corr(nn.Module):
@@ -43,6 +44,8 @@ class Baseline_Sim_Corr(nn.Module):
         out = torch.einsum('...i,...j->...ij', x, y)
         # out.shape (batch_size, out_dim, out_dim)
         out = out.reshape(x.shape[0], -1)
+        # Previous, forget to put softmax
+        # out = F.softmax(out)
         # out.shape (batch_size, out_dim^2)
         return out, x, y
     

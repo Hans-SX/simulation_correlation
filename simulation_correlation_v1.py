@@ -38,8 +38,12 @@ def simulation_correlation(num, seed=1):
     # To partial trace along the axis of the sub system.
     # Actually, could just use eye(2) = max Ent subsystem.
     tmp_rho = rho.reshape(2,2,2,2)  # na, nb, na, nb
+    # keep_a = np.transpose(tmp_rho, (1,0,2,3))
+    # keep_b = np.transpose(tmp_rho, (0,1,3,2))
     keep_a = np.einsum('ij...->ji...', tmp_rho)  # nb, na, na, nb
     keep_b = np.einsum('...ij->...ji', tmp_rho)  # na, nb, nb, na
+    # rho_a = np.trace(tmp_rho, axis1=1, axis2=3)
+    # rho_b = np.trace(tmp_rho, axis1=0, axis2=2)
     rho_a = np.einsum('i...i', keep_a)      
     rho_b = np.einsum('i...i', keep_b)
     # ========================================================================
@@ -62,14 +66,24 @@ def simulation_correlation(num, seed=1):
         # Pab: P11, P12, P21, P22
         # !!! It turns out that I don't need to stack it, by applying tensor
         # product, it will.
-
+# ------------------------------------
         # Ma.shape = (2,2,2), first index indicates which POVM (e.g., up/down)
-        Ma = np.einsum('...ij,jk', np.einsum('ij,...jk',
-                                             np.conj(ua.T), M_orig), ua)
-        Mb = np.einsum('...ij,jk', np.einsum('ij,...jk',
-                                             np.conj(ub.T), M_orig), ub)
-        Pa = np.einsum('...ii', np.einsum('ij,...jk', rho_a, Ma)).real
-        Pb = np.einsum('...ii', np.einsum('ij,...jk', rho_b, Mb)).real
+        # Ma = np.einsum('...ij,jk', np.einsum('ij,...jk',
+        #                                      np.conj(ua.T), M_orig), ua)
+        # Mb = np.einsum('...ij,jk', np.einsum('ij,...jk',
+        #                                      np.conj(ub.T), M_orig), ub)
+        # Pa = np.einsum('...ii', np.einsum('ij,...jk', rho_a, Ma)).real
+        # Pb = np.einsum('...ii', np.einsum('ij,...jk', rho_b, Mb)).real
+
+# this part might have problem trying to rewrite below, unfinished.
+# -------------------------------------        
+        Ma1 = ua.T @ pauli_z1 @ ua
+        Ma2 = ua.T @ pauli_z2 @ ua
+        # Ma = np.concatenate(Ma1, Ma2)
+        Mb1 = ub.T @ pauli_z1 @ ub
+        Mb2 = ub.T @ pauli_z2 @ ub
+        # Mb = np.concatenate(Mb1, Mb2)
+        Pa1 = np.trace(rho_a)
         Pa_Pb[i] = np.concatenate((Pa, Pb))
         # Mab.shape = (4,4,4),  first index indicates the combination ab=00, 01, 10, 11 
         Mab = np.kron(Ma, Mb)
